@@ -1,73 +1,34 @@
-For build prereqs, see [the CS144 VM setup instructions](https://web.stanford.edu/class/cs144/vm_howto).
+lab 0
+使用telnet & netcat发送和接受应用层的数据
+使用自带套接字写一个webget，了解套接字编程
+实现ByteStream作为TCP连接的最底器的容器
 
-## Sponge quickstart
+FIFO模型
+有限容量
+支持write,peak,pop,read,remaining_capacity,end_input操作
+lab 1
+在ByteStream的基础上实现StreamReassembler
 
-To set up your build directory:
+负责把收到的包根据序号重组，按序写入ByteStream
+抛弃过去的包和超出容量的包
+储存容量容许范围内，但失序的包
+lab 2 & 3
+TCP receiver
 
-	$ mkdir -p <path/to/sponge>/build
-	$ cd <path/to/sponge>/build
-	$ cmake ..
+基于收到包的连续性的假设，正确转换32位的seq到64位的index
+将收到的包传给StreamReassembler
+计算出正确的ackno
+计算出正确的window_size，以告知发送方实现流量控制(flow-control)
+TCP sender
 
-**Note:** all further commands listed below should be run from the `build` dir.
+TCP可靠数据传输机制的实现
 
-To build:
+定时器(单一的重传定时器)
+序号和确认(确认是被捎带在数据报文段中的)
+TCP连接管理:SYN和FIN
+流量控制的另一部分，发送方根据接收方的窗口大小调整流量
+lab 4
+TCP connection
 
-    $ make
-
-You can use the `-j` switch to build in parallel, e.g.,
-
-    $ make -j$(nproc)
-
-To test (after building; make sure you've got the [build prereqs](https://web.stanford.edu/class/cs144/vm_howto) installed!)
-
-    $ make check_labN *(replacing N with a checkpoint number)*
-
-The first time you run `make check_lab...`, it will run `sudo` to configure two
-[TUN](https://www.kernel.org/doc/Documentation/networking/tuntap.txt) devices for use during
-testing.
-
-### build options
-
-You can specify a different compiler when you run cmake:
-
-    $ CC=clang CXX=clang++ cmake ..
-
-You can also specify `CLANG_TIDY=` or `CLANG_FORMAT=` (see "other useful targets", below).
-
-Sponge's build system supports several different build targets. By default, cmake chooses the `Release`
-target, which enables the usual optimizations. The `Debug` target enables debugging and reduces the
-level of optimization. To choose the `Debug` target:
-
-    $ cmake .. -DCMAKE_BUILD_TYPE=Debug
-
-The following targets are supported:
-
-- `Release` - optimizations
-- `Debug` - debug symbols and `-Og`
-- `RelASan` - release build with [ASan](https://en.wikipedia.org/wiki/AddressSanitizer) and
-  [UBSan](https://developers.redhat.com/blog/2014/10/16/gcc-undefined-behavior-sanitizer-ubsan/)
-- `RelTSan` - release build with
-  [ThreadSan](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/Thread_Sanitizer)
-- `DebugASan` - debug build with ASan and UBSan
-- `DebugTSan` - debug build with ThreadSan
-
-Of course, you can combine all of the above, e.g.,
-
-    $ CLANG_TIDY=clang-tidy-6.0 CXX=clang++-6.0 .. -DCMAKE_BUILD_TYPE=Debug
-
-**Note:** if you want to change `CC`, `CXX`, `CLANG_TIDY`, or `CLANG_FORMAT`, you need to remove
-`build/CMakeCache.txt` and re-run cmake. (This isn't necessary for `CMAKE_BUILD_TYPE`.)
-
-### other useful targets
-
-To generate documentation (you'll need `doxygen`; output will be in `build/doc/`):
-
-    $ make doc
-
-To format (you'll need `clang-format`):
-
-    $ make format
-
-To see all available targets,
-
-    $ make help
+整合sender和receiver实现TCP过程
+TCP状态机：三次握手，正常通信，四次挥手
